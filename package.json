@@ -1,0 +1,32 @@
+{
+  "name": "algorithm-visualizer",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Interactive algorithm visualizations for sorting concepts built with React and TypeScript.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "algorithms",
+    "visualizer",
+    "react",
+    "typescript",
+    "education",
+    "sorting"
+  ],
+  "author": "Michael Shippey",
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.4"
+  },
+  "dependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  }
+}
