@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-type AlgorithmId = 'bubble' | 'insertion'
+type AlgorithmId =
+  | 'bubble'
+  | 'insertion'
+  | 'selection'
+  | 'merge'
+  | 'quick'
+  | 'heap'
 
 type Step = {
   array: number[]
@@ -100,10 +106,224 @@ function insertionSortSteps(input: number[]): Step[] {
   return steps
 }
 
+function selectionSortSteps(input: number[]): Step[] {
+  const arr = clone(input)
+  const steps: Step[] = [
+    { array: clone(arr), activeIndices: [], description: 'Initial array' },
+  ]
+
+  for (let i = 0; i < arr.length; i++) {
+    let minIndex = i
+    steps.push({
+      array: clone(arr),
+      activeIndices: [i],
+      description: `Select index ${i} as current minimum`,
+    })
+
+    for (let j = i + 1; j < arr.length; j++) {
+      steps.push({
+        array: clone(arr),
+        activeIndices: [minIndex, j],
+        description: `Compare current min (index ${minIndex}) with index ${j}`,
+      })
+      if (arr[j] < arr[minIndex]) {
+        minIndex = j
+        steps.push({
+          array: clone(arr),
+          activeIndices: [minIndex],
+          description: `New minimum found at index ${minIndex}`,
+        })
+      }
+    }
+
+    if (minIndex !== i) {
+      ;[arr[i], arr[minIndex]] = [arr[minIndex], arr[i]]
+      steps.push({
+        array: clone(arr),
+        activeIndices: [i, minIndex],
+        description: `Swap index ${i} with min index ${minIndex}`,
+      })
+    }
+  }
+
+  steps.push({
+    array: clone(arr),
+    activeIndices: [],
+    description: 'Array sorted (selection sort)',
+  })
+
+  return steps
+}
+
+function mergeSortSteps(input: number[]): Step[] {
+  const arr = clone(input)
+  const aux = clone(arr)
+  const steps: Step[] = [
+    { array: clone(arr), activeIndices: [], description: 'Initial array' },
+  ]
+
+  const record = (activeIndices: number[], description: string) => {
+    steps.push({ array: clone(arr), activeIndices, description })
+  }
+
+  const merge = (lo: number, mid: number, hi: number) => {
+    for (let k = lo; k <= hi; k++) aux[k] = arr[k]!
+
+    let i = lo
+    let j = mid + 1
+    for (let k = lo; k <= hi; k++) {
+      if (i > mid) {
+        arr[k] = aux[j]!
+        record([k, j], `Write remaining right value into index ${k}`)
+        j++
+      } else if (j > hi) {
+        arr[k] = aux[i]!
+        record([k, i], `Write remaining left value into index ${k}`)
+        i++
+      } else {
+        record([i, j], `Compare left index ${i} and right index ${j}`)
+        if (aux[j]! < aux[i]!) {
+          arr[k] = aux[j]!
+          record([k, j], `Write right value into index ${k}`)
+          j++
+        } else {
+          arr[k] = aux[i]!
+          record([k, i], `Write left value into index ${k}`)
+          i++
+        }
+      }
+    }
+  }
+
+  const sort = (lo: number, hi: number) => {
+    if (hi <= lo) return
+    const mid = Math.floor((lo + hi) / 2)
+    sort(lo, mid)
+    sort(mid + 1, hi)
+    record([lo, mid, hi], `Merge ranges [${lo}, ${mid}] and [${mid + 1}, ${hi}]`)
+    merge(lo, mid, hi)
+  }
+
+  sort(0, arr.length - 1)
+
+  steps.push({
+    array: clone(arr),
+    activeIndices: [],
+    description: 'Array sorted (merge sort)',
+  })
+
+  return steps
+}
+
+function quickSortSteps(input: number[]): Step[] {
+  const arr = clone(input)
+  const steps: Step[] = [
+    { array: clone(arr), activeIndices: [], description: 'Initial array' },
+  ]
+
+  const record = (activeIndices: number[], description: string) => {
+    steps.push({ array: clone(arr), activeIndices, description })
+  }
+
+  const partition = (lo: number, hi: number) => {
+    const pivot = arr[hi]!
+    record([hi], `Choose pivot ${pivot} at index ${hi}`)
+    let i = lo
+    for (let j = lo; j < hi; j++) {
+      record([j, hi], `Compare index ${j} with pivot`)
+      if (arr[j]! < pivot) {
+        if (i !== j) {
+          ;[arr[i], arr[j]] = [arr[j]!, arr[i]!]
+          record([i, j, hi], `Swap index ${i} and ${j} (move smaller left)`)
+        }
+        i++
+      }
+    }
+    ;[arr[i], arr[hi]] = [arr[hi]!, arr[i]!]
+    record([i, hi], `Place pivot at index ${i}`)
+    return i
+  }
+
+  const sort = (lo: number, hi: number) => {
+    if (lo >= hi) return
+    record([lo, hi], `Partition range [${lo}, ${hi}]`)
+    const p = partition(lo, hi)
+    sort(lo, p - 1)
+    sort(p + 1, hi)
+  }
+
+  sort(0, arr.length - 1)
+
+  steps.push({
+    array: clone(arr),
+    activeIndices: [],
+    description: 'Array sorted (quick sort)',
+  })
+
+  return steps
+}
+
+function heapSortSteps(input: number[]): Step[] {
+  const arr = clone(input)
+  const steps: Step[] = [
+    { array: clone(arr), activeIndices: [], description: 'Initial array' },
+  ]
+
+  const record = (activeIndices: number[], description: string) => {
+    steps.push({ array: clone(arr), activeIndices, description })
+  }
+
+  const heapify = (heapSize: number, root: number) => {
+    let largest = root
+    const left = 2 * root + 1
+    const right = 2 * root + 2
+
+    if (left < heapSize) {
+      record([largest, left], `Compare root ${largest} with left child ${left}`)
+      if (arr[left]! > arr[largest]!) largest = left
+    }
+    if (right < heapSize) {
+      record([largest, right], `Compare current max ${largest} with right child ${right}`)
+      if (arr[right]! > arr[largest]!) largest = right
+    }
+
+    if (largest !== root) {
+      ;[arr[root], arr[largest]] = [arr[largest]!, arr[root]!]
+      record([root, largest], `Swap to restore heap property`)
+      heapify(heapSize, largest)
+    }
+  }
+
+  // Build max heap
+  for (let i = Math.floor(arr.length / 2) - 1; i >= 0; i--) {
+    record([i], `Heapify subtree rooted at index ${i}`)
+    heapify(arr.length, i)
+  }
+
+  // Extract elements from heap
+  for (let end = arr.length - 1; end > 0; end--) {
+    ;[arr[0], arr[end]] = [arr[end]!, arr[0]!]
+    record([0, end], `Move max to index ${end}`)
+    heapify(end, 0)
+  }
+
+  steps.push({
+    array: clone(arr),
+    activeIndices: [],
+    description: 'Array sorted (heap sort)',
+  })
+
+  return steps
+}
+
 const ALGORITHMS: { id: AlgorithmId; label: string; buildSteps: (arr: number[]) => Step[] }[] =
   [
     { id: 'bubble', label: 'Bubble sort', buildSteps: bubbleSortSteps },
     { id: 'insertion', label: 'Insertion sort', buildSteps: insertionSortSteps },
+    { id: 'selection', label: 'Selection sort', buildSteps: selectionSortSteps },
+    { id: 'merge', label: 'Merge sort', buildSteps: mergeSortSteps },
+    { id: 'quick', label: 'Quick sort', buildSteps: quickSortSteps },
+    { id: 'heap', label: 'Heap sort', buildSteps: heapSortSteps },
   ]
 
 export function SortingPlayground() {

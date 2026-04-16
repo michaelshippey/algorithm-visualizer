@@ -11,6 +11,10 @@ The current version includes a sorting playground with:
 
 - Bubble sort visualization
 - Insertion sort visualization
+- Selection sort visualization
+- Merge sort visualization
+- Quick sort visualization
+- Heap sort visualization
 - Adjustable array size
 - Adjustable playback speed
 - Step-by-step playback controls
@@ -46,7 +50,6 @@ npm run preview
 
 ## Future improvements
 
-- Add merge sort and quicksort
 - Add search visualizations
 - Add pathfinding visualizations
 - Add complexity explanations and pseudocode side panels
